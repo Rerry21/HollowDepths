@@ -2,6 +2,8 @@
 
 #include <optional>
 
+#include "states/PlayingState.hpp"
+
 namespace
 {
     constexpr unsigned int kWindowWidth = 1280;
@@ -12,13 +14,14 @@ namespace
 
 Game::Game()
     : m_window(sf::VideoMode({kWindowWidth, kWindowHeight}), "Hollow Depths")
-    , m_testSquare({100.f, 100.f})
+    , m_input()
+    , m_stateStack()
+    , m_context{m_window, m_input, m_stateStack}
 {
     m_window.setVerticalSyncEnabled(true);
+    m_window.setKeyRepeatEnabled(false);
 
-    m_testSquare.setFillColor(sf::Color(200, 80, 60));
-    m_testSquare.setOrigin(m_testSquare.getSize() / 2.f);
-    m_testSquare.setPosition({kWindowWidth / 2.f, kWindowHeight / 2.f});
+    m_stateStack.push<PlayingState>(m_context);
 }
 
 void Game::run()
@@ -54,24 +57,26 @@ void Game::processEvents()
         {
             m_window.close();
         }
-        else if (const auto* key = event->getIf<sf::Event::KeyPressed>())
+        else
         {
-            if (key->code == sf::Keyboard::Key::Escape)
-            {
-                m_window.close();
-            }
+            m_stateStack.handleEvent(*event);
         }
     }
 }
 
 void Game::update(sf::Time dt)
 {
-    m_testSquare.rotate(sf::degrees(90.f * dt.asSeconds()));
+    m_stateStack.update(dt);
+
+    if (m_stateStack.isEmpty())
+    {
+        m_window.close();
+    }
 }
 
 void Game::render()
 {
     m_window.clear(sf::Color(20, 20, 28));
-    m_window.draw(m_testSquare);
+    m_stateStack.render(m_window);
     m_window.display();
 }

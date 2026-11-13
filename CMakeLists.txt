@@ -24,6 +24,12 @@ FetchContent_MakeAvailable(SFML)
 add_executable(HollowDepths
     src/main.cpp
     src/core/Game.cpp
+    src/core/Input.cpp
+    src/core/StateStack.cpp
+    src/world/Entity.cpp
+    src/world/Player.cpp
+    src/states/PlayingState.cpp
+    src/states/PauseState.cpp
 )
 
 target_include_directories(HollowDepths PRIVATE src)

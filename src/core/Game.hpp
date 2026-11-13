@@ -2,6 +2,10 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "core/Input.hpp"
+#include "core/State.hpp"
+#include "core/StateStack.hpp"
+
 class Game
 {
 public:
@@ -14,5 +18,7 @@ private:
     void render();
 
     sf::RenderWindow m_window;
-    sf::RectangleShape m_testSquare;
+    Input m_input;
+    StateStack m_stateStack;
+    Context m_context;
 };
