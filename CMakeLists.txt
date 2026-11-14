@@ -36,6 +36,7 @@ add_executable(HollowDepths
     src/world/Entity.cpp
     src/world/Player.cpp
     src/world/TileMap.cpp
+    src/tests/GeneratorSelfTest.cpp
 )
 
 target_include_directories(HollowDepths PRIVATE src)
