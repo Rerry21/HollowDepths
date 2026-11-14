@@ -45,3 +45,8 @@ const Player& World::player() const
 {
     return m_player;
 }
+
+Player& World::player()
+{
+    return m_player;
+}

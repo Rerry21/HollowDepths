@@ -29,14 +29,17 @@ add_executable(HollowDepths
     src/core/StateStack.cpp
     src/generation/DungeonGenerator.cpp
     src/generation/Rng.cpp
+    src/render/Animator.cpp
     src/render/Camera.cpp
     src/render/DungeonView.cpp
+    src/render/PlayerView.cpp
     src/states/DungeonDebugState.cpp
     src/states/PauseState.cpp
     src/states/PlayingState.cpp
     src/tests/GeneratorSelfTest.cpp
     src/world/Dungeon.cpp
     src/world/Entity.cpp
+    src/world/Health.cpp
     src/world/Player.cpp
     src/world/TileMap.cpp
     src/world/World.cpp

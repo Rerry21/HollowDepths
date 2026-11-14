@@ -17,6 +17,7 @@ public:
 
     const Dungeon& dungeon() const;
     const Player& player() const;
+    Player& player();
 
 private:
     Dungeon m_dungeon;
