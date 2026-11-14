@@ -26,10 +26,16 @@ add_executable(HollowDepths
     src/core/Game.cpp
     src/core/Input.cpp
     src/core/StateStack.cpp
+    src/generation/DungeonGenerator.cpp
+    src/generation/Rng.cpp
+    src/render/DungeonView.cpp
+    src/states/DungeonDebugState.cpp
+    src/states/PauseState.cpp
+    src/states/PlayingState.cpp
+    src/world/Dungeon.cpp
     src/world/Entity.cpp
     src/world/Player.cpp
-    src/states/PlayingState.cpp
-    src/states/PauseState.cpp
+    src/world/TileMap.cpp
 )
 
 target_include_directories(HollowDepths PRIVATE src)
