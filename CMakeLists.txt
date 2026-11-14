@@ -23,20 +23,23 @@ FetchContent_MakeAvailable(SFML)
 
 add_executable(HollowDepths
     src/main.cpp
+    src/combat/CollisionSystem.cpp
     src/core/Game.cpp
     src/core/Input.cpp
     src/core/StateStack.cpp
     src/generation/DungeonGenerator.cpp
     src/generation/Rng.cpp
+    src/render/Camera.cpp
     src/render/DungeonView.cpp
     src/states/DungeonDebugState.cpp
     src/states/PauseState.cpp
     src/states/PlayingState.cpp
+    src/tests/GeneratorSelfTest.cpp
     src/world/Dungeon.cpp
     src/world/Entity.cpp
     src/world/Player.cpp
     src/world/TileMap.cpp
-    src/tests/GeneratorSelfTest.cpp
+    src/world/World.cpp
 )
 
 target_include_directories(HollowDepths PRIVATE src)

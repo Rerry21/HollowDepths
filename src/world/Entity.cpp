@@ -16,6 +16,11 @@ sf::Vector2f Entity::size() const
     return m_size;
 }
 
+sf::Vector2f Entity::velocity() const
+{
+    return m_velocity;
+}
+
 sf::FloatRect Entity::bounds() const
 {
     return sf::FloatRect(m_position - m_size / 2.f, m_size);

@@ -51,3 +51,9 @@ std::uint64_t Rng::deriveSeed(std::uint64_t baseSeed, int attempt)
     z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
     return z ^ (z >> 31);
 }
+
+std::uint64_t randomSeed()
+{
+    std::random_device device;
+    return (static_cast<std::uint64_t>(device()) << 32) | static_cast<std::uint64_t>(device());
+}

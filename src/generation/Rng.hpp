@@ -19,3 +19,5 @@ private:
     std::mt19937_64 m_engine;
     std::uint64_t m_seed;
 };
+
+std::uint64_t randomSeed();

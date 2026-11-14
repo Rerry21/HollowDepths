@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "states/DungeonDebugState.hpp"
+#include "states/PlayingState.hpp"
 
 namespace
 {
@@ -21,7 +21,7 @@ Game::Game()
     m_window.setVerticalSyncEnabled(true);
     m_window.setKeyRepeatEnabled(false);
 
-    m_stateStack.push<DungeonDebugState>(m_context);
+    m_stateStack.push<PlayingState>(m_context);
 }
 
 void Game::run()

@@ -3,7 +3,7 @@
 namespace
 {
     constexpr float kDefaultSpeed = 220.f;
-    constexpr sf::Vector2f kPlayerSize{32.f, 32.f};
+    constexpr sf::Vector2f kPlayerSize{24.f, 24.f};
 }
 
 Player::Player(sf::Vector2f position)
@@ -12,9 +12,9 @@ Player::Player(sf::Vector2f position)
 {
 }
 
-void Player::update(sf::Time dt)
+void Player::update(sf::Time)
 {
-    m_position += m_moveDirection * m_speed * dt.asSeconds();
+    m_velocity = m_moveDirection * m_speed;
 }
 
 void Player::setMoveDirection(sf::Vector2f direction)
