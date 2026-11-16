@@ -8,6 +8,7 @@
 #include "generation/DungeonGenerator.hpp"
 #include "render/Camera.hpp"
 #include "render/DungeonView.hpp"
+#include "render/EnemyView.hpp"
 #include "render/PlayerView.hpp"
 #include "world/World.hpp"
 
@@ -32,4 +33,5 @@ private:
     DungeonView m_dungeonView;
     Camera m_camera;
     PlayerView m_playerView;
+    EnemyView m_enemyView;
 };

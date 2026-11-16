@@ -23,21 +23,28 @@ FetchContent_MakeAvailable(SFML)
 
 add_executable(HollowDepths
     src/main.cpp
+    src/ai/DistanceField.cpp
+    src/ai/EnemyAI.cpp
+    src/ai/Perception.cpp
     src/combat/CollisionSystem.cpp
     src/core/Game.cpp
     src/core/Input.cpp
     src/core/StateStack.cpp
     src/generation/DungeonGenerator.cpp
+    src/generation/EnemySpawner.cpp
     src/generation/Rng.cpp
     src/render/Animator.cpp
     src/render/Camera.cpp
     src/render/DungeonView.cpp
+    src/render/EnemyView.cpp
     src/render/PlayerView.cpp
     src/states/DungeonDebugState.cpp
     src/states/PauseState.cpp
     src/states/PlayingState.cpp
     src/tests/GeneratorSelfTest.cpp
     src/world/Dungeon.cpp
+    src/world/Enemy.cpp
+    src/world/EnemyStats.cpp
     src/world/Entity.cpp
     src/world/Health.cpp
     src/world/Player.cpp

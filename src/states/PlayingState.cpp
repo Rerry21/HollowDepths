@@ -11,6 +11,7 @@ namespace
 {
     constexpr int kDebugDamage = 15;
     constexpr int kDebugHeal = 25;
+    constexpr int kDebugEnemyDamage = 25;
 }
 
 PlayingState::PlayingState(Context& context)
@@ -41,6 +42,12 @@ void PlayingState::handleEvent(const sf::Event& event)
         case sf::Keyboard::Key::H:
             m_world.player().heal(kDebugHeal);
             break;
+        case sf::Keyboard::Key::X:
+            m_world.damageNearestEnemy(kDebugEnemyDamage);
+            break;
+        case sf::Keyboard::Key::F3:
+            m_enemyView.toggleDebug();
+            break;
         default:
             break;
         }
@@ -66,6 +73,7 @@ void PlayingState::render(sf::RenderTarget& target)
     target.setView(m_camera.view());
 
     m_dungeonView.draw(target);
+    m_enemyView.draw(target, m_world.enemies());
     m_playerView.draw(target, m_world.player());
 
     target.setView(target.getDefaultView());
@@ -97,7 +105,7 @@ void PlayingState::enterWorld()
 void PlayingState::updateTitle()
 {
     context().window.setTitle("Hollow Depths | seed " + std::to_string(m_seed) +
-                              " | WASD: move  R: new dungeon  K: hurt  H: heal  Esc: pause");
+                              " | WASD move  R new  K hurt me  H heal  X hurt enemy  F3 AI dots  Esc pause");
 }
 
 void PlayingState::renderHud(sf::RenderTarget& target)

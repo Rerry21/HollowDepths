@@ -1,12 +1,20 @@
 #include "world/World.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <limits>
 #include <stdexcept>
 #include <utility>
 
+#include "ai/Perception.hpp"
 #include "combat/CollisionSystem.hpp"
+#include "generation/EnemySpawner.hpp"
 
 namespace
 {
+    constexpr float kStrikeSlack = 8.f;
+
     sf::Vector2f spawnPosition(const Dungeon& dungeon)
     {
         const Room* start = dungeon.findRoom(RoomType::Start);
@@ -16,14 +24,16 @@ namespace
         }
 
         const sf::Vector2i centre = start->center();
-        return {(static_cast<float>(centre.x) + 0.5f) * kTileSize, (static_cast<float>(centre.y) + 0.5f) * kTileSize};
+        return tileCentre(centre, kTileSize);
     }
 }
 
 World::World(Dungeon dungeon)
     : m_dungeon(std::move(dungeon))
     , m_player(spawnPosition(m_dungeon))
+    , m_enemies(EnemySpawner::spawn(m_dungeon, kTileSize))
 {
+    updatePlayerField();
 }
 
 void World::update(sf::Time dt, sf::Vector2f playerDirection)
@@ -34,6 +44,9 @@ void World::update(sf::Time dt, sf::Vector2f playerDirection)
     const sf::Vector2f delta = m_player.velocity() * dt.asSeconds();
     m_player.setPosition(CollisionSystem::moveAndCollide(m_dungeon.tiles(), kTileSize, m_player.position(),
                                                          m_player.size(), delta));
+
+    updatePlayerField();
+    updateEnemies(dt);
 }
 
 const Dungeon& World::dungeon() const
@@ -49,4 +62,111 @@ const Player& World::player() const
 Player& World::player()
 {
     return m_player;
+}
+
+const std::vector<Enemy>& World::enemies() const
+{
+    return m_enemies;
+}
+
+bool World::damageNearestEnemy(int amount)
+{
+    Enemy* nearest = nullptr;
+    float nearestDistance = std::numeric_limits<float>::max();
+
+    for (Enemy& enemy : m_enemies)
+    {
+        const float distance = (enemy.position() - m_player.position()).lengthSquared();
+        if (distance < nearestDistance)
+        {
+            nearestDistance = distance;
+            nearest = &enemy;
+        }
+    }
+
+    if (nearest == nullptr)
+    {
+        return false;
+    }
+
+    const bool hit = nearest->takeDamage(amount);
+    std::erase_if(m_enemies, [](const Enemy& enemy) { return enemy.isDead(); });
+    return hit;
+}
+
+void World::updatePlayerField()
+{
+    const sf::Vector2i tile = tileOf(m_player.position(), kTileSize);
+    if (tile == m_playerTile)
+    {
+        return;
+    }
+
+    m_playerTile = tile;
+    m_playerField.rebuild(m_dungeon.tiles(), tile);
+}
+
+void World::updateEnemies(sf::Time dt)
+{
+    const TileMap& tiles = m_dungeon.tiles();
+    const bool playerAlive = !m_player.health().isDead();
+
+    for (Enemy& enemy : m_enemies)
+    {
+        const AIContext context{enemy.position(), m_player.position(), playerAlive, tiles, m_playerField, kTileSize};
+        enemy.think(context, dt);
+        enemy.update(dt);
+
+        const sf::Vector2f delta = enemy.velocity() * dt.asSeconds();
+        enemy.setPosition(CollisionSystem::moveAndCollide(tiles, kTileSize, enemy.position(), enemy.size(), delta));
+
+        if (enemy.consumeStrike())
+        {
+            const float distance = (m_player.position() - enemy.position()).length();
+            if (distance <= enemy.stats().attackRange + kStrikeSlack)
+            {
+                m_player.takeDamage(enemy.stats().damage);
+            }
+        }
+    }
+
+    separateEnemies();
+    std::erase_if(m_enemies, [](const Enemy& enemy) { return enemy.isDead(); });
+}
+
+void World::separateEnemies()
+{
+    const TileMap& tiles = m_dungeon.tiles();
+
+    for (std::size_t i = 0; i < m_enemies.size(); ++i)
+    {
+        for (std::size_t j = i + 1; j < m_enemies.size(); ++j)
+        {
+            Enemy& a = m_enemies[i];
+            Enemy& b = m_enemies[j];
+
+            const sf::Vector2f offset = b.position() - a.position();
+            const float minDistance = (a.size().x + b.size().x) / 2.f;
+            const float distanceSquared = offset.lengthSquared();
+            if (distanceSquared >= minDistance * minDistance)
+            {
+                continue;
+            }
+
+            float distance = std::sqrt(distanceSquared);
+            sf::Vector2f direction{1.f, 0.f};
+            if (distance >= 0.001f)
+            {
+                direction = offset / distance;
+            }
+            else
+            {
+                distance = 0.f;
+            }
+
+            const sf::Vector2f push = direction * ((minDistance - distance) / 2.f);
+            a.setPosition(CollisionSystem::moveAndCollide(tiles, kTileSize, a.position(), a.size(), -push));
+            b.setPosition(CollisionSystem::moveAndCollide(tiles, kTileSize, b.position(), b.size(), push));
+        }
+    }
 }
