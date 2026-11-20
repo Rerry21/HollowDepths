@@ -20,6 +20,8 @@ namespace
             return sf::Color(240, 90, 220);
         case EnemyType::Heavy:
             return sf::Color(35, 25, 45);
+        case EnemyType::Archer:
+            return sf::Color(150, 230, 60);
         }
         return sf::Color::White;
     }
@@ -90,6 +92,26 @@ void EnemyView::draw(sf::RenderTarget& target, const std::vector<Enemy>& enemies
             dot.setFillColor(stateColor(enemy.aiState()));
             target.draw(dot);
         }
+    }
+}
+
+void EnemyView::drawProjectiles(sf::RenderTarget& target, const std::vector<Projectile>& projectiles) const
+{
+    sf::RectangleShape outer({10.f, 10.f});
+    outer.setOrigin({5.f, 5.f});
+    outer.setFillColor(sf::Color(20, 20, 30));
+
+    sf::RectangleShape inner({6.f, 6.f});
+    inner.setOrigin({3.f, 3.f});
+    inner.setFillColor(sf::Color(255, 220, 90));
+
+    for (const Projectile& projectile : projectiles)
+    {
+        const sf::Vector2f position{std::round(projectile.position().x), std::round(projectile.position().y)};
+        outer.setPosition(position);
+        inner.setPosition(position);
+        target.draw(outer);
+        target.draw(inner);
     }
 }
 

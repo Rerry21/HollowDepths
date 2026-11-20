@@ -4,7 +4,8 @@ enum class EnemyType
 {
     Grunt,
     Runner,
-    Heavy
+    Heavy,
+    Archer
 };
 
 struct EnemyStats
@@ -20,6 +21,7 @@ struct EnemyStats
     float windupTime;
     float recoverTime;
     float retreatTime;
+    float projectileSpeed = 0.f;
 };
 
 const EnemyStats& statsFor(EnemyType type);

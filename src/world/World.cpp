@@ -14,6 +14,7 @@
 namespace
 {
     constexpr float kStrikeSlack = 8.f;
+    constexpr float kProjectileRangeFactor = 1.5f;
 
     sf::Vector2f spawnPosition(const Dungeon& dungeon)
     {
@@ -47,6 +48,7 @@ void World::update(sf::Time dt, sf::Vector2f playerDirection)
 
     updatePlayerField();
     updateEnemies(dt);
+    updateProjectiles(dt);
 }
 
 const Dungeon& World::dungeon() const
@@ -122,16 +124,26 @@ void World::updateEnemies(sf::Time dt)
 
         if (enemy.consumeStrike())
         {
-            const float distance = (m_player.position() - enemy.position()).length();
-            if (distance <= enemy.stats().attackRange + kStrikeSlack)
+            const EnemyStats& stats = enemy.stats();
+            if (stats.projectileSpeed > 0.f)
             {
-                m_player.takeDamage(enemy.stats().damage);
+                m_projectiles.emplace_back(enemy.position(), m_player.position(),
+                                            stats.projectileSpeed, stats.damage,
+                                            stats.attackRange * kProjectileRangeFactor);
+            }
+            else
+            {
+                const float distance = (m_player.position() - enemy.position()).length();
+                if (distance <= stats.attackRange + kStrikeSlack)
+                {
+                    m_player.takeDamage(stats.damage);
+                }
             }
         }
-    }
 
     separateEnemies();
     std::erase_if(m_enemies, [](const Enemy& enemy) { return enemy.isDead(); });
+    }
 }
 
 void World::separateEnemies()
@@ -169,4 +181,36 @@ void World::separateEnemies()
             b.setPosition(CollisionSystem::moveAndCollide(tiles, kTileSize, b.position(), b.size(), push));
         }
     }
+}
+
+const std::vector<Projectile>& World::projectiles() const
+{
+    return m_projectiles;
+}
+
+void World::updateProjectiles(sf::Time dt)
+{
+    const TileMap& tiles = m_dungeon.tiles();
+
+    for (Projectile& projectile : m_projectiles)
+    {
+        projectile.update(dt);
+        if (!projectile.isAlive())
+        {
+            continue;
+        }
+
+        const sf::Vector2i tile = tileOf(projectile.position(), kTileSize);
+        if (!tiles.isWalkable(tile.x, tile.y))
+        {
+            projectile.expire();
+        }
+        else if (projectile.bounds().findIntersection(m_player.bounds()).has_value())
+        {
+            m_player.takeDamage(projectile.damage());
+            projectile.expire();
+        }
+    }
+
+    std::erase_if(m_projectiles, [](const Projectile& projectile) { return !projectile.isAlive(); });
 }

@@ -45,6 +45,21 @@ namespace
     };
 }
 
+const EnemyStats kArcher{
+    .name = "Archer",
+    .maxHealth = 22,
+    .speed = 80.f,
+    .damage = 8,
+    .size = 22.f,
+    .detectRadius = 320.f,
+    .loseRadius = 480.f,
+    .attackRange = 230.f,
+    .windupTime = 0.5f,
+    .recoverTime = 0.9f,
+    .retreatTime = 0.6f,
+    .projectileSpeed = 260.f,
+};
+
 const EnemyStats& statsFor(EnemyType type)
 {
     switch (type)
@@ -55,6 +70,8 @@ const EnemyStats& statsFor(EnemyType type)
         return kRunner;
     case EnemyType::Heavy:
         return kHeavy;
+    case EnemyType::Archer:
+        return kArcher;
     }
     return kGrunt;
 }

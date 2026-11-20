@@ -9,6 +9,7 @@
 #include "world/Dungeon.hpp"
 #include "world/Enemy.hpp"
 #include "world/Player.hpp"
+#include "world/Projectile.hpp"
 
 inline constexpr float kTileSize = 32.f;
 
@@ -23,6 +24,7 @@ public:
     const Player& player() const;
     Player& player();
     const std::vector<Enemy>& enemies() const;
+    const std ::vector<Projectile>& projectiles() const;
 
     bool damageNearestEnemy(int amount);
 
@@ -30,10 +32,12 @@ private:
     void updatePlayerField();
     void updateEnemies(sf::Time dt);
     void separateEnemies();
+    void updateProjectiles(sf::Time dt);
 
     Dungeon m_dungeon;
     Player m_player;
     std::vector<Enemy> m_enemies;
+    std::vector<Projectile> m_projectiles;
     DistanceField m_playerField;
     sf::Vector2i m_playerTile{-1, -1};
 };

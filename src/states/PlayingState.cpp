@@ -74,6 +74,7 @@ void PlayingState::render(sf::RenderTarget& target)
 
     m_dungeonView.draw(target);
     m_enemyView.draw(target, m_world.enemies());
+    m_enemyView.drawProjectiles(target, m_world.projectiles());
     m_playerView.draw(target, m_world.player());
 
     target.setView(target.getDefaultView());

@@ -12,14 +12,15 @@ namespace
     constexpr int kMaxPerRoom = 5;
     constexpr int kHeavyMinArea = 80;
     constexpr int kPlacementAttempts = 10;
-    constexpr int kGruntWeight = 60;
-    constexpr int kRunnerWeight = 25;
-    constexpr int kHeavyWeight = 15;
+    constexpr int kGruntWeight = 50;
+    constexpr int kRunnerWeight = 20;
+    constexpr int kArcherWeight = 20;
+    constexpr int kHeavyWeight = 10;
 
     EnemyType pickType(Rng& rng, int roomArea)
     {
         const int heavyWeight = roomArea >= kHeavyMinArea ? kHeavyWeight : 0;
-        const int total = kGruntWeight + kRunnerWeight + heavyWeight;
+        const int total = kGruntWeight + kRunnerWeight + kArcherWeight + heavyWeight;
         const int roll = rng.range(0, total - 1);
 
         if (roll < kGruntWeight)
@@ -29,6 +30,10 @@ namespace
         if (roll < kGruntWeight + kRunnerWeight)
         {
             return EnemyType::Runner;
+        }
+        if (roll < kGruntWeight + kRunnerWeight + kArcherWeight)
+        {
+            return EnemyType::Archer;
         }
         return EnemyType::Heavy;
     }

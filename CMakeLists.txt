@@ -48,6 +48,7 @@ add_executable(HollowDepths
     src/world/Entity.cpp
     src/world/Health.cpp
     src/world/Player.cpp
+    src/world/Projectile.cpp
     src/world/TileMap.cpp
     src/world/World.cpp
 )
