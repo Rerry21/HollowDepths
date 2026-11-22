@@ -10,6 +10,8 @@ namespace
     constexpr float kInvulnerabilityTime = 0.8f;
     constexpr float kAttackCooldown = 0.4f;
     constexpr int kAttackDamage = 12;
+    constexpr float kShotCooldown = 0.6f;
+    constexpr int kShotDamage = 8;
 }
 
 Player::Player(sf::Vector2f position)
@@ -24,6 +26,7 @@ void Player::update(sf::Time dt)
     const float seconds = dt.asSeconds();
     m_invulnerableTimer = std::max(0.f, m_attackTimer - seconds);
     m_attackTimer = std::max(0.f, m_attackTimer - seconds);
+    m_shotTimer = std::max(0.f, m_shotTimer - seconds);
 
     if (m_health.isDead())
     {
@@ -111,4 +114,20 @@ bool Player::isInvulnerable() const
 float Player::invulnerabilityRemaining() const
 {
     return m_invulnerableTimer;
+}
+
+bool Player::tryShoot()
+{
+    if (m_health.isDead() || m_shotTimer > 0.f)
+    {
+        return false;
+    }
+
+    m_shotTimer = kShotCooldown;
+    return true;
+}
+
+int Player::shotDamage() const
+{
+    return kShotDamage;
 }

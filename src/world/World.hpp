@@ -22,6 +22,7 @@ public:
 
     void update(sf::Time dt, sf::Vector2f playerDirection);
     void playerMeleeAttack(sf::Vector2f aim);
+    void playerShoot(sf::Vector2f aim);
 
     const Dungeon& dungeon() const;
     const Player& player() const;

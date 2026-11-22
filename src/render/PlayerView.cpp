@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <stdexcept>
 
 namespace
@@ -139,4 +140,30 @@ void PlayerView::draw(sf::RenderTarget& target, const Player& player)
     m_sprite.setColor(tintFor(player));
 
     target.draw(m_sprite);
+}
+
+void PlayerView::drawSwing(sf::RenderTarget& target, const Swing& swing) const
+{
+    if (swing.timeLeft <= 0.f)
+    {
+        return;
+    }
+
+    constexpr int kSegments = 12;
+    constexpr float kHalfArc = 0.7853982f;
+
+    const float fade = swing.timeLeft / swing.duration;
+    const sf::Color color(255, 255, 255, static_cast<std::uint8_t>(160.f * fade));
+    const float base = std::atan2(swing.direction.y, swing.direction.x);
+
+    sf::VertexArray fan(sf::PrimitiveType::TriangleFan);
+    fan.append(sf::Vertex{swing.origin, color});
+    for (int i = 0; i <= kSegments; ++i)
+    {
+        const float angle = base - kHalfArc + 2.f * kHalfArc * static_cast<float>(i) / static_cast<float>(kSegments);
+        fan.append(sf::Vertex{{swing.origin.x + std::cos(angle) * swing.range,
+                               swing.origin.y + std::sin(angle) * swing.range},
+                              color});
+    }
+    target.draw(fan);
 }

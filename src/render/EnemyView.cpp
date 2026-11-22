@@ -107,6 +107,7 @@ void EnemyView::drawProjectiles(sf::RenderTarget& target, const std::vector<Proj
 
     for (const Projectile& projectile : projectiles)
     {
+        inner.setFillColor(projectile.faction() == Faction::Player ? sf::Color(90, 220, 255) : sf::Color(255, 220, 90));
         const sf::Vector2f position{std::round(projectile.position().x), std::round(projectile.position().y)};
         outer.setPosition(position);
         inner.setPosition(position);

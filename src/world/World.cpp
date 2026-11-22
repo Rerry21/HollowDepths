@@ -20,6 +20,8 @@ namespace
     constexpr float kCritMultiplier = 2.f;
     constexpr float kSwingDuration = 0.15f;
     constexpr float kSwingCosHalfArc = 0.7071f;
+    constexpr float kPlayerShotSpeed = 420.f;
+    constexpr float kPlayerShotRange = 400.f;
 
     sf::Vector2f spawnPosition(const Dungeon& dungeon)
     {
@@ -178,9 +180,9 @@ void World::updateEnemies(sf::Time dt)
             const EnemyStats& stats = enemy.stats();
             if (stats.projectileSpeed > 0.f)
             {
-                m_projectiles.emplace_back(enemy.position(), m_player.position() - enemy.position(),
+                m_projectiles.emplace_back(Faction::Enemy, enemy.position(), m_player.position() - enemy.position(),
                                            stats.projectileSpeed, stats.damage,
-                                           stats.attackRange * kProjectileRangeFactor);
+                                           stats.attackRange * kProjectileRangeFactor); 
             }
             else
             {
@@ -250,13 +252,45 @@ void World::updateProjectiles(sf::Time dt)
         if (!tiles.isWalkable(tile.x, tile.y))
         {
             projectile.expire();
+            continue;
         }
-        else if (projectile.bounds().findIntersection(m_player.bounds()).has_value())
+
+        if (projectile.faction() == Faction::Enemy)
         {
-            m_player.takeDamage(projectile.damage());
+            if (projectile.bounds().findIntersection(m_player.bounds()).has_value())
+            {
+                m_player.takeDamage(projectile.damage());
+                projectile.expire();
+            }
+            continue;
+        }
+
+        for (Enemy& enemy : m_enemies)
+        {
+            if (enemy.isDead() || !projectile.bounds().findIntersection(enemy.bounds()).has_value())
+            {
+                continue;
+            }
+
+            const DamageResult hit = rollDamage(projectile.damage(), m_combatRng, kCritChance, kCritMultiplier);
+            enemy.takeDamage(hit.amount);
             projectile.expire();
+            break;
         }
     }
 
     std::erase_if(m_projectiles, [](const Projectile& projectile) { return !projectile.isAlive(); });
+    std::erase_if(m_enemies, [](const Enemy& enemy) { return enemy.isDead(); });
+}
+
+void World::playerShoot(sf::Vector2f aim)
+{
+    if (aim.lengthSquared() < 0.0001f || !m_player.tryShoot())
+    {
+        return;
+    }
+
+    m_player.faceTowards(aim.x);
+    m_projectiles.emplace_back(Faction::Player, m_player.position(), aim, kPlayerShotSpeed, m_player.shotDamage(),
+                               kPlayerShotRange);
 }

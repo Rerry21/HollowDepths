@@ -22,6 +22,8 @@ public:
     bool takeDamage(int amount);
     void heal(int amount);
     bool tryAttack();
+    bool tryShoot();
+    int shotDamage() const;
     void faceTowards(float dx);
 
     int attackDamage() const;
@@ -36,5 +38,6 @@ private:
     Health m_health;
     float m_invulnerableTimer = 0.f;
     float m_attackTimer = 0.f;
+    float m_shotTimer = 0.f;
     Facing m_facing = Facing::Right;
 };

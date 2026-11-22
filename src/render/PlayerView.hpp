@@ -4,6 +4,7 @@
 
 #include "render/Animator.hpp"
 #include "world/Player.hpp"
+#include "world/Swing.hpp"
 
 class PlayerView
 {
@@ -15,6 +16,7 @@ public:
 
     void update(const Player& player, sf::Time dt);
     void draw(sf::RenderTarget& target, const Player& player);
+    void drawSwing(sf::RenderTarget& target, const Swing& swing) const;
 
 private:
     sf::Texture m_texture;

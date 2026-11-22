@@ -52,6 +52,20 @@ void PlayingState::handleEvent(const sf::Event& event)
             break;
         }
     }
+    else if (const auto* mouse = event.getIf<sf::Event::MouseButtonPressed>())
+    {
+        const sf::Vector2f clicked = context().window.mapPixelToCoords(mouse->position, m_camera.view());
+        const sf::Vector2f aim = clicked - m_world.player().position();
+
+        if (mouse->button == sf::Mouse::Button::Left)
+        {
+            m_world.playerMeleeAttack(aim);
+        }
+        else if (mouse->button == sf::Mouse::Button::Right)
+        {
+            m_world.playerShoot(aim);
+        }
+    }
     else if (event.is<sf::Event::FocusLost>())
     {
         context().stack.push<PauseState>(context());
@@ -75,6 +89,7 @@ void PlayingState::render(sf::RenderTarget& target)
     m_dungeonView.draw(target);
     m_enemyView.draw(target, m_world.enemies());
     m_enemyView.drawProjectiles(target, m_world.projectiles());
+    m_playerView.drawSwing(target, m_world.swing());
     m_playerView.draw(target, m_world.player());
 
     target.setView(target.getDefaultView());
@@ -106,7 +121,7 @@ void PlayingState::enterWorld()
 void PlayingState::updateTitle()
 {
     context().window.setTitle("Hollow Depths | seed " + std::to_string(m_seed) +
-                              " | WASD move  R new  K hurt me  H heal  X hurt enemy  F3 AI dots  Esc pause");
+                              " | WASD move  LMB melee  RMB shoot  R new  K hurt me  H heal  Esc pause");
 }
 
 void PlayingState::renderHud(sf::RenderTarget& target)

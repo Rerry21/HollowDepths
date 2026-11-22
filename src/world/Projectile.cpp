@@ -5,8 +5,10 @@ namespace
     constexpr sf::Vector2f kProjectileSize{8.f, 8.f};
 }
 
-Projectile::Projectile(sf::Vector2f position, sf::Vector2f direction, float speed, int damage, float range)
+Projectile::Projectile(Faction faction, sf::Vector2f position, sf::Vector2f direction, float speed, int damage,
+                       float range)
     : Entity(position, kProjectileSize)
+    , m_faction(faction)
     , m_damage(damage)
     , m_remainingRange(range)
 {
@@ -39,6 +41,11 @@ void Projectile::update(sf::Time dt)
 void Projectile::expire()
 {
     m_alive = false;
+}
+
+Faction Projectile::faction() const
+{
+    return m_faction;
 }
 
 int Projectile::damage() const
