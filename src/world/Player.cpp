@@ -8,6 +8,8 @@ namespace
     constexpr sf::Vector2f kPlayerSize{24.f, 24.f};
     constexpr int kMaxHealth = 100;
     constexpr float kInvulnerabilityTime = 0.8f;
+    constexpr float kAttackCooldown = 0.4f;
+    constexpr int kAttackDamage = 12;
 }
 
 Player::Player(sf::Vector2f position)
@@ -19,10 +21,9 @@ Player::Player(sf::Vector2f position)
 
 void Player::update(sf::Time dt)
 {
-    if (m_invulnerableTimer > 0.f)
-    {
-        m_invulnerableTimer = std::max(0.f, m_invulnerableTimer - dt.asSeconds());
-    }
+    const float seconds = dt.asSeconds();
+    m_invulnerableTimer = std::max(0.f, m_attackTimer - seconds);
+    m_attackTimer = std::max(0.f, m_attackTimer - seconds);
 
     if (m_health.isDead())
     {
@@ -62,6 +63,34 @@ bool Player::takeDamage(int amount)
 void Player::heal(int amount)
 {
     m_health.heal(amount);
+}
+
+bool Player::tryAttack()
+{
+    if (m_health.isDead() || m_attackTimer > 0.f)
+    {
+        return false;
+    }
+
+    m_attackTimer = kAttackCooldown;
+    return true;
+}
+
+void Player::faceTowards(float dx)
+{
+    if (dx > 0.f)
+    {
+        m_facing = Facing::Right;
+    }
+    else if (dx < 0.f)
+    {
+        m_facing = Facing::Left;
+    }
+}
+
+int Player::attackDamage() const
+{
+    return kAttackDamage;
 }
 
 const Health& Player::health() const

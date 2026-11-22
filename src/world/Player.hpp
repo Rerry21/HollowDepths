@@ -12,6 +12,8 @@ enum class Facing
 class Player : public Entity
 {
 public:
+    static constexpr float kAttackRange = 52.f;
+
     explicit Player(sf::Vector2f position);
 
     void update(sf::Time dt) override;
@@ -19,7 +21,10 @@ public:
 
     bool takeDamage(int amount);
     void heal(int amount);
+    bool tryAttack();
+    void faceTowards(float dx);
 
+    int attackDamage() const;
     const Health& health() const;
     Facing facing() const;
     bool isInvulnerable() const;
@@ -30,5 +35,6 @@ private:
     float m_speed;
     Health m_health;
     float m_invulnerableTimer = 0.f;
+    float m_attackTimer = 0.f;
     Facing m_facing = Facing::Right;
 };

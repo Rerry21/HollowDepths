@@ -26,6 +26,7 @@ add_executable(HollowDepths
     src/ai/DistanceField.cpp
     src/ai/EnemyAI.cpp
     src/ai/Perception.cpp
+    src/combat/DamageCalc.cpp
     src/combat/CollisionSystem.cpp
     src/core/Game.cpp
     src/core/Input.cpp

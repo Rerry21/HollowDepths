@@ -9,12 +9,17 @@
 
 #include "ai/Perception.hpp"
 #include "combat/CollisionSystem.hpp"
+#include "combat/DamageCalc.hpp"
 #include "generation/EnemySpawner.hpp"
 
 namespace
 {
     constexpr float kStrikeSlack = 8.f;
     constexpr float kProjectileRangeFactor = 1.5f;
+    constexpr int kCritChance = 10;
+    constexpr float kCritMultiplier = 2.f;
+    constexpr float kSwingDuration = 0.15f;
+    constexpr float kSwingCosHalfArc = 0.7071f;
 
     sf::Vector2f spawnPosition(const Dungeon& dungeon)
     {
@@ -33,12 +38,15 @@ World::World(Dungeon dungeon)
     : m_dungeon(std::move(dungeon))
     , m_player(spawnPosition(m_dungeon))
     , m_enemies(EnemySpawner::spawn(m_dungeon, kTileSize))
+    , m_combatRng(Rng::deriveSeed(m_dungeon.seed(), 2000))
 {
     updatePlayerField();
 }
 
 void World::update(sf::Time dt, sf::Vector2f playerDirection)
 {
+    m_swing.timeLeft = std::max(0.f, m_swing.timeLeft - dt.asSeconds());
+
     m_player.setMoveDirection(playerDirection);
     m_player.update(dt);
 
@@ -71,6 +79,16 @@ const std::vector<Enemy>& World::enemies() const
     return m_enemies;
 }
 
+const std::vector<Projectile>& World::projectiles() const
+{
+    return m_projectiles;
+}
+
+const Swing& World::swing() const
+{
+    return m_swing;
+}
+
 bool World::damageNearestEnemy(int amount)
 {
     Enemy* nearest = nullptr;
@@ -94,6 +112,37 @@ bool World::damageNearestEnemy(int amount)
     const bool hit = nearest->takeDamage(amount);
     std::erase_if(m_enemies, [](const Enemy& enemy) { return enemy.isDead(); });
     return hit;
+}
+
+void World::playerMeleeAttack(sf::Vector2f aim)
+{
+    if (aim.lengthSquared() < 0.0001f || !m_player.tryAttack())
+    {
+        return;
+    }
+
+    const sf::Vector2f direction = aim.normalized();
+    m_player.faceTowards(direction.x);
+    m_swing = Swing{m_player.position(), direction, Player::kAttackRange, kSwingDuration, kSwingDuration};
+
+    for (Enemy& enemy : m_enemies)
+    {
+        const sf::Vector2f offset = enemy.position() - m_player.position();
+        const float distance = offset.length();
+        if (distance > Player::kAttackRange + enemy.size().x / 2.f)
+        {
+            continue;
+        }
+        if (distance > 0.001f && offset.normalized().dot(direction) < kSwingCosHalfArc)
+        {
+            continue;
+        }
+
+        const DamageResult hit = rollDamage(m_player.attackDamage(), m_combatRng, kCritChance, kCritMultiplier);
+        enemy.takeDamage(hit.amount);
+    }
+
+    std::erase_if(m_enemies, [](const Enemy& enemy) { return enemy.isDead(); });
 }
 
 void World::updatePlayerField()
@@ -127,9 +176,9 @@ void World::updateEnemies(sf::Time dt)
             const EnemyStats& stats = enemy.stats();
             if (stats.projectileSpeed > 0.f)
             {
-                m_projectiles.emplace_back(enemy.position(), m_player.position(),
-                                            stats.projectileSpeed, stats.damage,
-                                            stats.attackRange * kProjectileRangeFactor);
+                m_projectiles.emplace_back(enemy.position(), m_player.position() - enemy.position(),
+                                           stats.projectileSpeed, stats.damage,
+                                           stats.attackRange * kProjectileRangeFactor);
             }
             else
             {
@@ -140,10 +189,10 @@ void World::updateEnemies(sf::Time dt)
                 }
             }
         }
+    }
 
     separateEnemies();
     std::erase_if(m_enemies, [](const Enemy& enemy) { return enemy.isDead(); });
-    }
 }
 
 void World::separateEnemies()
@@ -181,11 +230,6 @@ void World::separateEnemies()
             b.setPosition(CollisionSystem::moveAndCollide(tiles, kTileSize, b.position(), b.size(), push));
         }
     }
-}
-
-const std::vector<Projectile>& World::projectiles() const
-{
-    return m_projectiles;
 }
 
 void World::updateProjectiles(sf::Time dt)
