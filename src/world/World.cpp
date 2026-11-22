@@ -91,6 +91,8 @@ const Swing& World::swing() const
 
 bool World::damageNearestEnemy(int amount)
 {
+    constexpr float kDebugRange = 150.f;
+
     Enemy* nearest = nullptr;
     float nearestDistance = std::numeric_limits<float>::max();
 
@@ -104,7 +106,7 @@ bool World::damageNearestEnemy(int amount)
         }
     }
 
-    if (nearest == nullptr)
+    if (nearest == nullptr || nearestDistance > kDebugRange * kDebugRange)
     {
         return false;
     }
