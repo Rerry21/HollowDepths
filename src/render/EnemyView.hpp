@@ -5,6 +5,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "world/Enemy.hpp"
+#include "world/LootDrop.hpp"
 #include "world/Projectile.hpp"
 
 class EnemyView
@@ -12,6 +13,7 @@ class EnemyView
 public:
     void draw(sf::RenderTarget& target, const std::vector<Enemy>& enemies) const;
     void drawProjectiles(sf::RenderTarget& target, const std::vector<Projectile>& projectiles) const;
+    void drawLoot(sf::RenderTarget& target, const std::vector<LootDrop>& drops) const;
     void toggleDebug();
 
 private:

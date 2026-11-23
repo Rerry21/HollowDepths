@@ -9,6 +9,7 @@
 #include "generation/Rng.hpp"
 #include "world/Dungeon.hpp"
 #include "world/Enemy.hpp"
+#include "world/LootDrop.hpp"
 #include "world/Player.hpp"
 #include "world/Projectile.hpp"
 #include "world/Swing.hpp"
@@ -28,7 +29,8 @@ public:
     const Player& player() const;
     Player& player();
     const std::vector<Enemy>& enemies() const;
-    const std ::vector<Projectile>& projectiles() const;
+    const std::vector<Projectile>& projectiles() const;
+    const std::vector<LootDrop>& drops() const;
     const Swing& swing() const;
 
     bool damageNearestEnemy(int amount);
@@ -38,12 +40,16 @@ private:
     void updateEnemies(sf::Time dt);
     void separateEnemies();
     void updateProjectiles(sf::Time dt);
+    void removeDeadEnemies();
+    void collectLoot();
 
     Dungeon m_dungeon;
     Player m_player;
     std::vector<Enemy> m_enemies;
     std::vector<Projectile> m_projectiles;
     Rng m_combatRng;
+    std::vector<LootDrop> m_drops;
+    Rng m_lootRng;
     Swing m_swing;
     DistanceField m_playerField;
     sf::Vector2i m_playerTile{-1, -1};

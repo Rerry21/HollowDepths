@@ -1,4 +1,5 @@
 #include "render/EnemyView.hpp"
+#include "render/RarityColor.hpp"
 
 #include <cmath>
 
@@ -119,4 +120,55 @@ void EnemyView::drawProjectiles(sf::RenderTarget& target, const std::vector<Proj
 void EnemyView::toggleDebug()
 {
     m_showDebug = !m_showDebug;
+}
+
+void EnemyView::drawLoot(sf::RenderTarget& target, const std::vector<LootDrop>& drop) const
+{
+    sf::CircleShape potion(6.f);
+    potion.setOrigin({6.f, 6.f});
+
+    sf::RectangleShape weapon({6.f, 16.f});
+    weapon.setOrigin({3.f, 8.f});
+
+    sf::RectangleShape armour({12.f, 12.f});
+    armour.setOrigin({6.f, 6.f});
+
+    for (const LootDrop& drop : drop)
+    {
+        const sf::Vector2f position{std::round(drop.position.x), std::round(drop.position.y)};
+        const sf::Color color = rarityColor(drop.item.rarity);
+        const sf::Color outline(10, 10, 16);
+
+        if (drop.item.type == ItemType::HealthPotion)
+        {
+            potion.setPosition(position);
+            potion.setFillColor(color);
+            potion.setOutlineThickness(2.f);
+            potion.setOutlineColor(outline);
+            target.draw(potion);
+        }
+        else if (drop.item.type == ItemType::HealthPotion)
+        {
+            weapon.setPosition(position);
+            potion.setFillColor(color);
+            potion.setOutlineThickness(2.f);
+            target.draw(potion);
+        }
+        else if (drop.item.type == ItemType::Weapon)
+        {
+            weapon.setPosition(position);
+            weapon.setFillColor(color);
+            weapon.setOutlineThickness(2.f);
+            weapon.setOutlineColor(outline);
+            target.draw(weapon);
+        }
+        else
+        {
+            armour.setPosition(position);
+            armour.setFillColor(color);
+            armour.setOutlineThickness(2.f);
+            armour.setOutlineColor(outline);
+            target.draw(armour);
+        }
+    }
 }

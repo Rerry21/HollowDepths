@@ -34,6 +34,7 @@ add_executable(HollowDepths
     src/generation/DungeonGenerator.cpp
     src/generation/EnemySpawner.cpp
     src/generation/Rng.cpp
+    src/items/LootGenerator.cpp
     src/render/Animator.cpp
     src/render/Camera.cpp
     src/render/DungeonView.cpp

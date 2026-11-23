@@ -6,12 +6,18 @@
 #include "core/StateStack.hpp"
 #include "generation/Rng.hpp"
 #include "states/PauseState.hpp"
+#include "render/RarityColor.hpp"
 
 namespace
 {
     constexpr int kDebugDamage = 15;
     constexpr int kDebugHeal = 25;
     constexpr int kDebugEnemyDamage = 25;
+
+    constexpr float kBarWidth = 240.f;
+    constexpr float kBarHeight = 18.f;
+    constexpr float kMargin = 16.f;
+    constexpr float kBorder = 2.f;
 }
 
 PlayingState::PlayingState(Context& context)
@@ -87,6 +93,7 @@ void PlayingState::render(sf::RenderTarget& target)
     target.setView(m_camera.view());
 
     m_dungeonView.draw(target);
+    m_enemyView.drawLoot(target, m_world.drops());
     m_enemyView.draw(target, m_world.enemies());
     m_enemyView.drawProjectiles(target, m_world.projectiles());
     m_playerView.drawSwing(target, m_world.swing());
@@ -95,6 +102,17 @@ void PlayingState::render(sf::RenderTarget& target)
     target.setView(target.getDefaultView());
 
     renderHud(target);
+
+    const auto drawSlot = [&](float x, const std::optional<Item>& item) {
+        sf::RectangleShape slot({16.f, 16.f});
+        slot.setPosition({x, kMargin + kBarHeight + 2.f * kBorder + 8.f});
+        slot.setFillColor(item ? rarityColor(item->rarity) : sf::Color(40, 40, 50));
+        slot.setOutlineThickness(2.f);
+        slot.setOutlineColor(sf::Color(10, 10, 16, 220));
+        target.draw(slot);
+    };
+    drawSlot(kMargin + 2.f, m_world.player().weapon());
+    drawSlot(kMargin + 28.f, m_world.player().armour());
 }
 
 void PlayingState::startNewDungeon(std::uint64_t seed)
@@ -126,11 +144,6 @@ void PlayingState::updateTitle()
 
 void PlayingState::renderHud(sf::RenderTarget& target)
 {
-    constexpr float kBarWidth = 240.f;
-    constexpr float kBarHeight = 18.f;
-    constexpr float kMargin = 16.f;
-    constexpr float kBorder = 2.f;
-
     sf::RectangleShape frame({kBarWidth + 2.f * kBorder, kBarHeight + 2.f * kBorder});
     frame.setPosition({kMargin, kMargin});
     frame.setFillColor(sf::Color(10, 10, 16, 220));

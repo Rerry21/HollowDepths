@@ -3,6 +3,10 @@
 #include "world/Entity.hpp"
 #include "world/Health.hpp"
 
+#include <optional>
+
+#include "items/Item.hpp"
+
 enum class Facing
 {
     Left,
@@ -23,6 +27,9 @@ public:
     void heal(int amount);
     bool tryAttack();
     bool tryShoot();
+    void applyItem(const Item& item);
+    const std::optional<Item>& weapon() const;
+    const std::optional<Item>& armour() const;
     int shotDamage() const;
     void faceTowards(float dx);
 
@@ -39,5 +46,7 @@ private:
     float m_invulnerableTimer = 0.f;
     float m_attackTimer = 0.f;
     float m_shotTimer = 0.f;
+    std::optional<Item> m_weapon;
+    std::optional<Item> m_armour;
     Facing m_facing = Facing::Right;
 };

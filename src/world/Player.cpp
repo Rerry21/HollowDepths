@@ -93,7 +93,7 @@ void Player::faceTowards(float dx)
 
 int Player::attackDamage() const
 {
-    return kAttackDamage;
+    return kAttackDamage + (m_weapon ? m_weapon->power : 0);
 }
 
 const Health& Player::health() const
@@ -129,5 +129,37 @@ bool Player::tryShoot()
 
 int Player::shotDamage() const
 {
-    return kShotDamage;
+    return kShotDamage + (m_weapon ? m_weapon->power : 0);
+}
+
+void Player::applyItem(const Item& item)
+{
+    switch (item.type)
+    {
+        case ItemType::HealthPotion:
+            m_health.heal(item.power);
+            break;
+        case ItemType::Weapon:
+            if (!m_weapon || item.power > m_weapon->power)
+            {
+                m_weapon = item;
+            }
+            break;
+        case ItemType::Armour:
+            if (!m_armour || item.power > m_armour->power)
+            {
+                m_armour = item;
+            }
+            break;
+    }
+}
+
+const std::optional<Item>& Player::weapon() const
+{
+    return m_weapon;
+}
+
+const std::optional<Item>& Player::armour() const
+{
+    return m_armour;
 }

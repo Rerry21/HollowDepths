@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <optional>
 #include <stdexcept>
 #include <utility>
 
@@ -11,6 +12,7 @@
 #include "combat/CollisionSystem.hpp"
 #include "combat/DamageCalc.hpp"
 #include "generation/EnemySpawner.hpp"
+#include "items/LootGenerator.hpp"
 
 namespace
 {
@@ -22,6 +24,7 @@ namespace
     constexpr float kSwingCosHalfArc = 0.7071f;
     constexpr float kPlayerShotSpeed = 420.f;
     constexpr float kPlayerShotRange = 400.f;
+    constexpr float kPickupRadius = 20.f;
 
     sf::Vector2f spawnPosition(const Dungeon& dungeon)
     {
@@ -41,6 +44,7 @@ World::World(Dungeon dungeon)
     , m_player(spawnPosition(m_dungeon))
     , m_enemies(EnemySpawner::spawn(m_dungeon, kTileSize))
     , m_combatRng(Rng::deriveSeed(m_dungeon.seed(), 2000))
+    , m_lootRng(Rng::deriveSeed(m_dungeon.seed(), 3000))
 {
     updatePlayerField();
 }
@@ -59,6 +63,7 @@ void World::update(sf::Time dt, sf::Vector2f playerDirection)
     updatePlayerField();
     updateEnemies(dt);
     updateProjectiles(dt);
+    collectLoot();
 }
 
 const Dungeon& World::dungeon() const
@@ -84,6 +89,11 @@ const std::vector<Enemy>& World::enemies() const
 const std::vector<Projectile>& World::projectiles() const
 {
     return m_projectiles;
+}
+
+const std::vector<LootDrop>& World::drops() const
+{
+    return m_drops;
 }
 
 const Swing& World::swing() const
@@ -114,7 +124,7 @@ bool World::damageNearestEnemy(int amount)
     }
 
     const bool hit = nearest->takeDamage(amount);
-    std::erase_if(m_enemies, [](const Enemy& enemy) { return enemy.isDead(); });
+    removeDeadEnemies();
     return hit;
 }
 
@@ -146,7 +156,19 @@ void World::playerMeleeAttack(sf::Vector2f aim)
         enemy.takeDamage(hit.amount);
     }
 
-    std::erase_if(m_enemies, [](const Enemy& enemy) { return enemy.isDead(); });
+    removeDeadEnemies();
+}
+
+void World::playerShoot(sf::Vector2f aim)
+{
+    if (aim.lengthSquared() < 0.0001f || !m_player.tryShoot())
+    {
+        return;
+    }
+
+    m_player.faceTowards(aim.x);
+    m_projectiles.emplace_back(Faction::Player, m_player.position(), aim, kPlayerShotSpeed, m_player.shotDamage(),
+                               kPlayerShotRange);
 }
 
 void World::updatePlayerField()
@@ -182,7 +204,7 @@ void World::updateEnemies(sf::Time dt)
             {
                 m_projectiles.emplace_back(Faction::Enemy, enemy.position(), m_player.position() - enemy.position(),
                                            stats.projectileSpeed, stats.damage,
-                                           stats.attackRange * kProjectileRangeFactor); 
+                                           stats.attackRange * kProjectileRangeFactor);
             }
             else
             {
@@ -196,7 +218,7 @@ void World::updateEnemies(sf::Time dt)
     }
 
     separateEnemies();
-    std::erase_if(m_enemies, [](const Enemy& enemy) { return enemy.isDead(); });
+    removeDeadEnemies();
 }
 
 void World::separateEnemies()
@@ -280,17 +302,47 @@ void World::updateProjectiles(sf::Time dt)
     }
 
     std::erase_if(m_projectiles, [](const Projectile& projectile) { return !projectile.isAlive(); });
+    removeDeadEnemies();
+}
+
+void World::removeDeadEnemies()
+{
+    for (const Enemy& enemy : m_enemies)
+    {
+        if (!enemy.isDead())
+        {
+            continue;
+        }
+
+        if (const std::optional<Item> item = rollEnemyDrop(m_lootRng))
+        {
+            m_drops.push_back(LootDrop{*item, enemy.position()});
+        }
+    }
+
     std::erase_if(m_enemies, [](const Enemy& enemy) { return enemy.isDead(); });
 }
 
-void World::playerShoot(sf::Vector2f aim)
+void World::collectLoot()
 {
-    if (aim.lengthSquared() < 0.0001f || !m_player.tryShoot())
+    if (m_player.health().isDead())
     {
         return;
     }
 
-    m_player.faceTowards(aim.x);
-    m_projectiles.emplace_back(Faction::Player, m_player.position(), aim, kPlayerShotSpeed, m_player.shotDamage(),
-                               kPlayerShotRange);
+    const bool fullHealth = m_player.health().current() == m_player.health().maximum();
+
+    std::erase_if(m_drops, [&](const LootDrop& drop) {
+        if ((drop.position - m_player.position()).length() > kPickupRadius)
+        {
+            return false;
+        }
+        if (drop.item.type == ItemType::HealthPotion && fullHealth)
+        {
+            return false;
+        }
+
+        m_player.applyItem(drop.item);
+        return true;
+    });
 }
